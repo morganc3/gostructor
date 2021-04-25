@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"reflect"
 	"strings"
@@ -14,16 +17,25 @@ type data struct {
 }
 
 func main() {
+	buff := bytes.NewBuffer([]byte(`{"name":"colby", "age": 26.4, "education":{"school":"UMD", "asd":"bsd"}}`))
+	output := generateFromJSON(buff, "Person")
+	fmt.Println(output)
+}
+
+func generateFromJSON(r io.Reader, name string) string {
+	bytes, err := ioutil.ReadAll(r)
+	if err != nil {
+		log.Fatalln("Failed to read JSON bytes")
+	}
 	var jsonData map[string]interface{}
-	err := json.Unmarshal([]byte(`{"name":"colby", "age": 26.4, "education":{"school":"UMD", "asd":"bsd"}}`), &jsonData)
+	err = json.Unmarshal(bytes, &jsonData)
 	if err != nil {
 		log.Fatal("failed to unmarshal")
 	}
-	// pass it a queue with just data on it
-	d := data{name: "Person", contents: jsonData}
+
+	d := data{name: name, contents: jsonData}
 	queue := []*data{&d}
-	out := structify(queue)
-	fmt.Println(out)
+	return structify(queue)
 }
 
 func structify(queue []*data) string {
